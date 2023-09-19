@@ -21,6 +21,13 @@ rebuild-local:
 create-venv:
 	python3 -m venv .venv
 
+recreate-venv:
+	rm -rf .venv
+	python3 -m venv .venv
+	. .venv/bin/activate
+	python3 -m pip install --upgrade build
+	pip install -r requirements.txt
+
 clean:
 	rm -rf dist
 	rm -rf build
