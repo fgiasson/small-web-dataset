@@ -12,10 +12,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Install setuptools
-      run: |
-          pip install setuptools==57.5.0
-    - name: Setup quarto-ghp
+    - name: Setup quarto-ghp with Python 3.10
       uses: fastai/workflows/quarto-ghp@master
       with:
         version: '3.10' # python version to use for this step            
