@@ -1,0 +1,2 @@
+FEEDS_PATH=./feeds
+DB_PATH=./db

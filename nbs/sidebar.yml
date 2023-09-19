@@ -1,0 +1,7 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_main.ipynb
+      - 01_language_detection.ipynb
+      - 02_feeds.ipynb

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = [".env",
+           "tests*"] # excluded as package discovery, not as a package, this is why it still appears when building the readnext package
+
+[project]
+name = "small-web-dataset"
+version = "0.0.1"
+authors = [
+  { name="Frederick Giasson", email="fred@fgiasson.com" },
+]
+description = "Process all the RSS and Atom feeds from the Small Web feeds list, validate them, generate statistics and eventually more."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "GNU GPLv3"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "typer[all]",
+    "python-dotenv",
+    "requests",
+    "feedparser",
+    "transformers",
+    "torch",
+    "langdetect"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/fgiasson/small-web-dataset"
+"Bug Tracker" = "https://github.com/fgiasson/small-web-dataset/issues"
+
+[project.scripts]
+swd = "small_web_dataset.main:init"

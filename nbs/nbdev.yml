@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "small-web-dataset"
+  site-url: "https://fgiasson.github.io/small-web-dataset"
+  description: "Process all the RSS and Atom feeds from the Small Web feeds list, validate them, generate statistics and eventually more."
+  repo-branch: main
+  repo-url: "https://github.com/fgiasson/small-web-dataset"
