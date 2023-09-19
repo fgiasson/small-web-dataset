@@ -9,7 +9,7 @@ index](https://github.com/kagisearch/smallweb/blob/main/smallweb.txt).
 What is the Small Web? The Small Web is the web of independent websites
 that are not part of the big tech platforms. Here are some more
 reference about the concept
-\[[1](https://neustadt.fr/essays/the-small-web/)\]\[[2](https://benhoyt.com/writings/the-small-web-is-beautiful/)\]\[[3](https://smallweb.page/why)\]\[[4](https://ar.al/2020/08/07/what-is-the-small-web/)\]\[[5](https://news.ycombinator.com/item?id=29768197)\]…
+\[[1](https://neustadt.fr/essays/the-small-web/)\]\[[2](https://benhoyt.com/writings/the-small-web-is-beautiful/)\]\[[3](https://smallweb.page/why)\]\[[4](https://ar.al/2020/08/07/what-is-the-small-web/)\]\[[5](https://news.ycombinator.com/item?id=29768197)\].
 
 There are different purpose for this tool and the dataset it creates:
 
