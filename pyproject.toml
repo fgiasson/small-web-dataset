@@ -24,7 +24,7 @@ dependencies = [
     "typer[all]",
     "python-dotenv",
     "requests",
-    "feedparser",
+    "feedparser==6.0.10",
     "transformers",
     "torch",
     "langdetect"
