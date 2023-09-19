@@ -194,16 +194,19 @@ def detect_language(text: str):
 
 # %% ../nbs/02_feeds.ipynb 32
 Feed = namedtuple('Feed', ['id', 'url', 'title', 'description', 'lang', 'feed_type', 'license'])
-Article = namedtuple('Article', ['feed', 'url', 'title', 'content', 'creation_date', 'lang', 'license'])
+Article = namedtuple('Article', ['url', 'feed', 'title', 'content', 'creation_date', 'lang', 'license'])
 
-def parse_feed(feed_path: str, feed_id: str):
+def parse_feed(feed_path: str, url: str):
+    """Parse a feed from a given path and url"""
+
+    feed_id = get_feed_id_from_url(url)
     parsed = feedparser.parse(feed_path)
 
     feed_title = parsed.feed.get('title', '')
     feed_description = parsed.feed.get('description', '')
 
     feed = Feed(feed_id,
-                parsed.feed.get('link', ''),
+                url,
                 feed_title, 
                 feed_description,
                 detect_language(feed_title + feed_description),
@@ -280,7 +283,7 @@ def sync_feeds_db_from_cache(ddmmyyyy: str = datetime.datetime.now().strftime('%
                 continue
 
             # parse the feed
-            feed, articles = parse_feed(feed_path, feed_id)
+            feed, articles = parse_feed(feed_path, url)
 
             # insert the feed into the database
             c.execute("INSERT OR IGNORE INTO feeds VALUES (?, ?, ?, ?, ?, ?, ?)", feed)
