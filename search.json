@@ -1,0 +1,142 @@
+[
+  {
+    "objectID": "main.html",
+    "href": "main.html",
+    "title": "main",
+    "section": "",
+    "text": "The command line interface is using typer, a library to build command line interfaces.\nOtherwise, we import all the internal modules of the project used to implement the different commands of the CLI.\n\nimport os\nimport typer\nfrom dotenv import load_dotenv\nfrom typing import Optional\nfrom typing_extensions import Annotated\nfrom small_web_dataset import __version__\nfrom small_web_dataset.feeds import sync_feeds as sf, connect_feeds_db, create_feeds_db, create_articles_db, sync_feeds_db_from_cache, get_articles_lang_per_feeds, update_feeds_with_languages, validate_new_index_file\nfrom rich import print"
+  },
+  {
+    "objectID": "main.html#imports",
+    "href": "main.html#imports",
+    "title": "main",
+    "section": "",
+    "text": "The command line interface is using typer, a library to build command line interfaces.\nOtherwise, we import all the internal modules of the project used to implement the different commands of the CLI.\n\nimport os\nimport typer\nfrom dotenv import load_dotenv\nfrom typing import Optional\nfrom typing_extensions import Annotated\nfrom small_web_dataset import __version__\nfrom small_web_dataset.feeds import sync_feeds as sf, connect_feeds_db, create_feeds_db, create_articles_db, sync_feeds_db_from_cache, get_articles_lang_per_feeds, update_feeds_with_languages, validate_new_index_file\nfrom rich import print"
+  },
+  {
+    "objectID": "main.html#command-line-interface",
+    "href": "main.html#command-line-interface",
+    "title": "main",
+    "section": "Command line interface",
+    "text": "Command line interface\n\nversion\nThe version command displays the current installed version of ReadNext.\n\n\n\nversion\n\n version ()\n\nGet the current installed version of ReadNext\nYou can get the version number of the ReadNext instance installed of your machine by running:\nswd version\n\n\nConfiguration\nDisplay the current configuration of ReadNext.\n\n\n\nconfig\n\n config ()\n\nGet the current configuration of the Small Web Feeds Processor tool\nYou can display the current configuration uptions picked-up by ReadNext by running:\nswd config"
+  },
+  {
+    "objectID": "main.html#sync-feeds",
+    "href": "main.html#sync-feeds",
+    "title": "main",
+    "section": "Sync Feeds",
+    "text": "Sync Feeds\n\n\nsync_feeds\n\n sync_feeds (ddmmyyyy:Annotated[Optional[str],&lt;typer.models.ArgumentInfoob\n             jectat0x7f43e12d1c60&gt;]=None)\n\nSync all the feeds from the Small Web index. If ddmmyyyy is provided, sync the feeds from that day. Default is today."
+  },
+  {
+    "objectID": "main.html#validate-small-web-index",
+    "href": "main.html#validate-small-web-index",
+    "title": "main",
+    "section": "Validate Small Web Index",
+    "text": "Validate Small Web Index\n\n\nvalidate_kagi_small_web_index\n\n validate_kagi_small_web_index (index_file:str)\n\nValidate a new Small Web Index against the Kagi Small Web Index"
+  },
+  {
+    "objectID": "main.html#initialization",
+    "href": "main.html#initialization",
+    "title": "main",
+    "section": "Initialization",
+    "text": "Initialization\n\n\nconfig_exists\n\n config_exists (env_var:str)\n\nCheck if env_var environment variable exists\n\n\n\ninit\n\n init ()\n\nInitialize the application"
+  },
+  {
+    "objectID": "main.html#entry-point",
+    "href": "main.html#entry-point",
+    "title": "main",
+    "section": "Entry point",
+    "text": "Entry point\nThe entry point of the command line interface, the typer application will be called to manage the interaction with the users."
+  },
+  {
+    "objectID": "feeds.html#feeds-db",
+    "href": "feeds.html#feeds-db",
+    "title": "Feeds",
+    "section": "Feeds DB",
+    "text": "Feeds DB\nWe will want to save diffent kind of information related to the feeds we process. We will save that information locally in a lightweigth SQLite database. Here are different kind of things we will want to save:\n\nfeed’s ID (private key)\nits language\nnumber of entries\nlast time we downloaded it\ntype of feed\nfeed’s URL\nfeed’s title\nfeed’s description\nfeed’s author\n\n\nConnect to the Database\n\n\n\nconnect_feeds_db\n\n connect_feeds_db ()\n\nConnect to the feeds database\n\n\nCreate DB\n\n\n\ncreate_articles_db\n\n create_articles_db (conn:sqlite3.Connection)\n\nCreate the articles database\n\n\n\ncreate_feeds_db\n\n create_feeds_db (conn:sqlite3.Connection)\n\nCreate the feeds database"
+  },
+  {
+    "objectID": "feeds.html#sync-feeds",
+    "href": "feeds.html#sync-feeds",
+    "title": "Feeds",
+    "section": "Sync Feeds",
+    "text": "Sync Feeds\nThe local feeds needs to be synchroninzed with the Small Web index. Most of them will be new, but it is possible that some of the previous feeds gets removed from the feeds index. In that case, we have to remove the feed from the local system and the SQL database. The process is as fellow:\n\ncheck if some of the feeds got removed from the index\n\nif so, remove the feed from the local system\nremove the feed from the SQL database\n\nif the feed is not already on the file system, create a unique folder name for each of the new feed\ncreate a DDMMYYYY folder under the ID of the feed in the FEEDS_PATH folder\ndownload the feed’s file in that folder\n\nThe local folder and file structure should be:\n\nFEEDS_PATH\n\nfeed_unique_folder\n\nDDMMYYYY\n\nfeed.xml\n\nDDMMYYYY\n\nfeed.xml\n\n\n\n\n\nGet Feeds\nThe first step is to get le list of feeds for the Small Web. That list is available from the Kagi Small Web index. Then for each of those feed in the list, we will download and save them locally in the FEEDS_PATH folder.\n\n\n\nget_small_web_feeds\n\n get_small_web_feeds ()\n\nGet smallweb feeds from KagiSearch’s github repository\n\nTests\n\nassert len(get_small_web_feeds()) &gt; 0\n\n\n\n\nFeed ID\nWe build the unique ID of a feed from its URL. We use the following steps:\n\nFor every character, if it not an alpha numeric character, we replace it with a -\n\nThis method is used to make sure we can use the ID to create files and directories on the local file system, as a private key in the BD, while keeping the ID readable. It could duplicate IDs if a non-alpha numeric character is the only differenciator of a URL, in which case both will be replaced by a - and the IDs will clash. But this is unlikely in short term and is good enough for now.\n\n\n\nget_feed_id_from_url\n\n get_feed_id_from_url (url:str)\n\nGet the feed id from a feed url\n\nTests\n\nassert get_feed_id_from_url('https://example.com/feed.xml') == 'https---example-com-feed-xml'\n\n\n\n\nProcess Removed Feeds From Index\nIt is possible that previously downloaded feeds get removed from the Small Web index. In this case, we get the latest version of the Small Web index, detect which was was removed, and remove it from the file system and the SQL database.\n\n\n\ngen_ids_index\n\n gen_ids_index (index:list)\n\nReturn a list of IDs of the feeds in the index\n\nTests\n\nindex = ['https://example.com/feed.xml']\nindex2 = gen_ids_index(index)\nassert index2 == ['https---example-com-feed-xml']\n\n\n\n\n\nprocess_removed_feed_from_index\n\n process_removed_feed_from_index (index:list)\n\nProcess all the feeds that got removed from the SmallWeb index\n\n\nDownload a Feed\n\n\n\ndownload_feed\n\n download_feed (url:str)\n\nDownload a feed from a given url\n\n\nSync all the feeds from the index\n\n\n\nsync_feeds\n\n sync_feeds ()\n\nSync all feeds from smallweb"
+  },
+  {
+    "objectID": "feeds.html#language-detection",
+    "href": "feeds.html#language-detection",
+    "title": "Feeds",
+    "section": "Language Detection",
+    "text": "Language Detection\nWe use the library langdetect to detect the language of a feed. We use the detect method of the library. We tried other avenues like Hugging Face madels, but the language detection performance and the processing performaces with not justifying the additional complexity for now (results were worse and much slower). You can check the file 01_language_detection.ipynb for more details.\n\n\ndetect_language\n\n detect_language (text:str)\n\nDetect the language of a given text\n\n\nTests\n\nassert detect_language('This is a test') == ''\nassert detect_language('This is a test' * 128) == 'en'\n\nassert detect_language('Ceci est un test') == ''\nassert detect_language('Ceci est un test' * 128) == 'fr'\n\nassert detect_language('これはテストです') == ''\nassert detect_language('これはテストです' * 128) == 'ja'\n\nassert detect_language('이것은 테스트입니다') == ''\nassert detect_language('이것은 테스트입니다' * 128) == 'ko'\n\nassert detect_language('&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;This is a test') == ''\nassert detect_language('&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;This is a test' * 128) == 'en'"
+  },
+  {
+    "objectID": "feeds.html#parse-a-local-feed",
+    "href": "feeds.html#parse-a-local-feed",
+    "title": "Feeds",
+    "section": "Parse a Local Feed",
+    "text": "Parse a Local Feed\nFor any given feed URL, let’s parse the local feed we downloaded for it and return an internal dictionary that represents it, whatever if it is a RSS or Atom feed. The internal representation of an small web article if represented by a namedtuple\n\n\nparse_feed\n\n parse_feed (url:str, feed_path:str=None)\n\nParse a feed from a given path and url"
+  },
+  {
+    "objectID": "feeds.html#sync-feeds-db-from-local-cache",
+    "href": "feeds.html#sync-feeds-db-from-local-cache",
+    "title": "Feeds",
+    "section": "Sync Feeds DB from Local Cache",
+    "text": "Sync Feeds DB from Local Cache\nWe do download all and every feeds locally and save them in a time stamped folder of the day where they were downloaded. We proceed that way such that we don’t have to redownload all the feeds every time we change an internal process that requires us to parse the feeds again. We can just parse the local cache of the feeds we downloaded.\nThe synchronization occurs by simply creating one transaction per feed using INSERT OR INGORE which appears to be the fastest way to only add the new feeds and ignore the one that are already in the DB. This is also by far the simplest logic to implement and to reason about.\nIf the database is empty, then it will be fully populated with the cache of the provided DDMMYYY as input.\n\n\nsync_feeds_db_from_cache\n\n sync_feeds_db_from_cache (ddmmyyyy:str='20092023')\n\nSync the feeds database from the cache. The cache by default to use is the one from today. It is possible to use a different cache by passing a different date in the format DDMMYYYY\n\n\n\nsync_feeds\n\n sync_feeds ()\n\nSync all feeds from smallweb\n\n\nUpdate the language of the feeds\nThe next step is to update the primary language of a feed. This is done by checking what is the highest number of articles with a certain language.\nWhat the following SQLite query does, it to group by language and count the number of articles for each language. Then we order by the count in descending order and we limit the result to 1. This way, we get the language with the highest number of articles.\nWe have to take that result and to update the feeds table with the new language.\nNote: it doesn’t seems possible to do that in SQLite directly, if I am missing some feature of the query language, please propose a better solution and submit a PR.\n\n\n\nget_articles_lang_per_feeds\n\n get_articles_lang_per_feeds ()\n\nGet the count of articles per language per feed\n\n\nUpdate the feeds table with the new languages\nThe next step is to take those results and to update the feeds table with the new language.\n\n\n\nupdate_feeds_with_languages\n\n update_feeds_with_languages (rows)\n\nUpdate the feeds database with the language of the feed"
+  },
+  {
+    "objectID": "feeds.html#clean-small-web-index",
+    "href": "feeds.html#clean-small-web-index",
+    "title": "Feeds",
+    "section": "Clean Small Web Index",
+    "text": "Clean Small Web Index\nThis utility function is used to remove all the feeds that have been tagged as non-english. For the moment, only the ones that have been tagged with a non-english language will be added, the ones that the current heuristic couldn’t determine the core language will be left in the index. Further work will be required for them.\n\n\nget_non_english_feeds\n\n get_non_english_feeds ()\n\nReturn the list of non-english feeds URL\nNext step is to remove the feeds URLs from the Small Web index.\n\n\n\nget_cleaned_small_web_index\n\n get_cleaned_small_web_index ()\n\nReturn the cleaned small web index"
+  },
+  {
+    "objectID": "feeds.html#validate-small-web-index-file",
+    "href": "feeds.html#validate-small-web-index-file",
+    "title": "Feeds",
+    "section": "Validate Small Web Index File",
+    "text": "Validate Small Web Index File\nOne thing that needs to be done is to check every incoming PR of the smallweb repository to see if the new proposed feeds from the contributors are valid or not. Do enabled this in a PR check, we will add a few functions here to validate a new proposed index file against the one of the main branch.\n\n\ndiff_index_file\n\n diff_index_file (new_index_file:str)\n\nDiff an input index file with the one currently on the main branch of the SmallWeb repository\nNow that we have the list of new feeds from what is currently in the index, the next step is to make sure that those feeds are valid according to the Kagi Small Web index guidelines. The first thing we validate is to make sure the feed is an English feed. Other validation checks could be added in the future.\n\n\n\nis_feed_english\n\n is_feed_english (url:str)\n\nValidate a feed from a given url is an English feed\nGiven a new index file, the validate function will check which are the new feeds, will get and parse each of them to deterine their validity. An empty list will be returned if all the feeds are valid, otherwise a list of the invalid feeds will be returned.\n\n\n\nvalidate_new_index_file\n\n validate_new_index_file (new_index_file:str)\n\nValidate a new index file by checking that all the feeds are in English. Returns an empty list if the new feeds are all valid. Returns a list of URLs with each of the feed that are not valid."
+  },
+  {
+    "objectID": "language_detection.html#get-model-and-tokenizer-files-for-the-language-detection-model",
+    "href": "language_detection.html#get-model-and-tokenizer-files-for-the-language-detection-model",
+    "title": "Language Detection",
+    "section": "Get Model and Tokenizer Files for the Language Detection Model",
+    "text": "Get Model and Tokenizer Files for the Language Detection Model\nWe have to download each model_name to the specified model_path. For the given model_name, the function will download all the appropriate model and tokenizer files to that path. If the specified path is not existing, then it will be created by the function.\n\n\ndownload_lang_model\n\n download_lang_model (model_path:str, model_name:str)\n\nDownload a Hugging Face language detection model and tokenizer to the specified directory"
+  },
+  {
+    "objectID": "language_detection.html#detect-language",
+    "href": "language_detection.html#detect-language",
+    "title": "Language Detection",
+    "section": "Detect Language",
+    "text": "Detect Language\n\nSupported Languages\nThe languages currently supported are the ones supported by the langdetect module. Supported language codes are:\n\n\nLoad Model & Tokenizer\nWe load the model and tokenizer that we previously downloaded. Then we will pass a reference to the model and tokenizer to the detect_language function such that we don’t have to load it every time we call it.\n\n\n\nload_model\n\n load_model (model_path:str)\n\nLoad a Hugging Face model and tokenizer from the specified directory\n\n\nDetect Language\n\n\n\ndetect_language\n\n detect_language (text:str, model, tokenizer)\n\nDetect the language of a given text"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "small-web-dataset",
+    "section": "",
+    "text": "The Small Web Dataset is a command line tool used to generate a dataset by aggregating of all the data from the Kagi Small Web index.\nWhat is the Small Web? The Small Web is the web of independent websites that are not part of the big tech platforms. Here are some more reference about the concept [1][2][3][4][5].\nThere are different purpose for this tool and the dataset it creates:"
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "small-web-dataset",
+    "section": "Install",
+    "text": "Install\nTo install the command line tool, you simply have to:\ngit clone https://github.com/fgiasson/small-web-dataset.git\ncd small-web-dataset\n\nmake build\nmake install-local-build\nThis will clone the repository, build the command line tool and install it in your local Python environment."
+  },
+  {
+    "objectID": "index.html#configure",
+    "href": "index.html#configure",
+    "title": "small-web-dataset",
+    "section": "Configure",
+    "text": "Configure\nYou have to make those environment variables available in your environment:\n\n\n\n\n\n\n\nVariable\nDescription\n\n\n\n\nFEEDS_PATH\nThe path where you want to save all the feeds on your local file system\n\n\nDB_PATH\nThe path where you want to save the SQLite dataset on your local file system"
+  },
+  {
+    "objectID": "index.html#how-to-use",
+    "href": "index.html#how-to-use",
+    "title": "small-web-dataset",
+    "section": "How to use",
+    "text": "How to use\nYou can make sure that the command line tool is installed by running, and that the latest version is available by running:\nsmall-web-dataset version\nYou can get the help documentation by running:\nsmall-web-dataset --help\nYou can check what are the current configuration options for the tool in the current environment by running:\nsmall-web-dataset config\nTo create the dataset, you simply have to run the following command:\nsmall-web-dataset sync-feeds\nThis command will do three things:\n\nit will download all the RSS and Atom feeds from the Kagi Small Web index in the FEEDS_PATH folder\nit will read all the local feeds files and import them in a local SQLite database in the DB_PATH folder\nit will infer the core language of a feed from the language used to write the articles in the feed, and it will add this information in the database\n\nOptionally, if you already have a local cache of the feeds and you only want to update/recreate the database, you simply have to specify the DDMMYYYY folder of the feeds you want to process:\nsmall-web-dataset sync-feeds 18092023"
+  }
+]
