@@ -8,7 +8,7 @@ exclude = [".env",
 
 [project]
 name = "small-web-dataset"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Frederick Giasson", email="fred@fgiasson.com" },
 ]

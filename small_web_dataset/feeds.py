@@ -4,7 +4,8 @@
 __all__ = ['Feed', 'Article', 'connect_feeds_db', 'create_feeds_db', 'create_articles_db', 'get_small_web_feeds',
            'get_feed_id_from_url', 'gen_ids_index', 'process_removed_feed_from_index', 'download_feed', 'sync_feeds',
            'detect_language', 'parse_feed', 'sync_feeds_db_from_cache', 'get_articles_lang_per_feeds',
-           'update_feeds_with_languages', 'get_non_english_feeds', 'get_cleaned_small_web_index']
+           'update_feeds_with_languages', 'get_non_english_feeds', 'get_cleaned_small_web_index', 'diff_index_file',
+           'is_feed_english', 'validate_new_index_file']
 
 # %% ../nbs/02_feeds.ipynb 3
 import concurrent.futures
@@ -196,11 +197,16 @@ def detect_language(text: str):
 Feed = namedtuple('Feed', ['id', 'url', 'title', 'description', 'lang', 'feed_type', 'license'])
 Article = namedtuple('Article', ['url', 'feed', 'title', 'content', 'creation_date', 'lang', 'license'])
 
-def parse_feed(feed_path: str, url: str):
+def parse_feed(url: str, feed_path: str = None):
     """Parse a feed from a given path and url"""
 
     feed_id = get_feed_id_from_url(url)
-    parsed = feedparser.parse(feed_path)
+
+    parsed = None
+    if feed_path is None:
+        parsed = feedparser.parse(url)
+    else:
+        parsed = feedparser.parse(feed_path)
 
     feed_title = parsed.feed.get('title', '')
     feed_description = parsed.feed.get('description', '')
@@ -283,7 +289,7 @@ def sync_feeds_db_from_cache(ddmmyyyy: str = datetime.datetime.now().strftime('%
                 continue
 
             # parse the feed
-            feed, articles = parse_feed(feed_path, url)
+            feed, articles = parse_feed(url, feed_path)
 
             # insert the feed into the database
             c.execute("INSERT OR IGNORE INTO feeds VALUES (?, ?, ?, ?, ?, ?, ?)", feed)
@@ -366,3 +372,69 @@ def get_cleaned_small_web_index():
             f.write(f"{url}\n")
 
     return index
+
+# %% ../nbs/02_feeds.ipynb 44
+def diff_index_file(new_index_file: str):
+    """Diff an input index file with the one currently on the `main` 
+    branch of the SmallWeb repository"""
+
+    index = get_small_web_feeds()
+
+    # read the new index file
+    new_index = ''
+    with open(new_index_file, 'r') as f:
+        new_index = f.read()
+
+    # get the diff between the two files
+    diff_new = list(set(new_index.splitlines()) - set(index))
+    diff_removed = list(set(index) - set(new_index.splitlines()))
+
+
+    return diff_new, diff_removed
+
+
+# %% ../nbs/02_feeds.ipynb 46
+def is_feed_english(url: str):
+    """Validate a feed from a given url is an English feed"""
+
+    feed_id = get_feed_id_from_url(url)
+    feed_folder = f"{os.environ.get('FEEDS_PATH').rstrip('/')}/{feed_id}"
+
+    # parse the feed
+    feed, articles = parse_feed(url)
+
+    # determine if the feed is in English according to the language of each of its articles.
+    # We create a statistic of the language used within the feed, if the majority of the articles
+    # are in English, we consider the feed to be in English
+    lang_count = {}
+    for article in articles:
+        if article.lang not in lang_count:
+            lang_count[article.lang] = 1
+        else:
+            lang_count[article.lang] += 1
+
+    # determine that the feed is in English if the majority of the articles are in English
+    feed_lang = ''
+    if len(lang_count) > 0:
+        feed_lang = max(lang_count, key=lang_count.get)
+
+    if(feed_lang == 'en'):
+        return True
+    else:
+        return False
+
+# %% ../nbs/02_feeds.ipynb 48
+def validate_new_index_file(new_index_file: str):
+    """Validate a new index file by checking that all the feeds are in English.
+    Returns an empty list if the new feeds are all valid. Returns a list of
+    URLs with each of the feed that are not valid."""
+
+    new, _ = diff_index_file(new_index_file)
+
+    # validate that all the new feeds are in English
+    invalid_feeds = []
+    for url in new:
+        if not is_feed_english(url):
+            invalid_feeds.append(url)
+    
+    return invalid_feeds
