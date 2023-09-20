@@ -4,7 +4,7 @@
 __all__ = ['Feed', 'Article', 'connect_feeds_db', 'create_feeds_db', 'create_articles_db', 'get_small_web_feeds',
            'get_feed_id_from_url', 'gen_ids_index', 'process_removed_feed_from_index', 'download_feed', 'sync_feeds',
            'detect_language', 'parse_feed', 'sync_feeds_db_from_cache', 'get_articles_lang_per_feeds',
-           'update_feeds_with_languages']
+           'update_feeds_with_languages', 'get_non_english_feeds', 'get_cleaned_small_web_index']
 
 # %% ../nbs/02_feeds.ipynb 3
 import concurrent.futures
@@ -331,3 +331,38 @@ def update_feeds_with_languages(rows):
     c.executemany("UPDATE feeds SET lang = ? WHERE id = ?", rows)
     conn.commit()
     conn.close()
+
+# %% ../nbs/02_feeds.ipynb 40
+def get_non_english_feeds():
+    """Return the list of non-english feeds URL"""
+    conn = connect_feeds_db()
+    c = conn.cursor()
+    c.execute('''SELECT url 
+                 FROM feeds 
+                 WHERE lang <> 'en' and lang <> '' 
+                 ORDER BY lang DESC''')
+    rows = c.fetchall()
+    conn.close()
+
+    return rows
+
+# %% ../nbs/02_feeds.ipynb 42
+def get_cleaned_small_web_index():
+    """Return the cleaned small web index"""
+
+    index = get_small_web_feeds()
+    non_english_feeds = get_non_english_feeds()
+
+    # remove non-english feeds from the index
+    for feed in non_english_feeds:
+        index.remove(feed[0])
+
+    # order the index by feed id
+    index.sort()
+
+    # write the index in a new text file
+    with open('smallweb.txt', 'w') as f:
+        for url in index:
+            f.write(f"{url}\n")
+
+    return index
